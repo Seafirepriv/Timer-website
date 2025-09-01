@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Auto Countdown Timer 🎉</title>
+  <style>
+    body {
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+      height: 100vh;
+      background: #f4f4f9;
+      font-family: Arial, sans-serif;
+    }
+    #timer {
+      font-size: 3rem;
+      font-weight: bold;
+      color: #333;
+      margin: 20px 0;
+    }
+  </style>
+</head>
+<body>
+  <h1>⏳ Countdown Timer</h1>
+  <div id="timer">0</div>
+
+  <!-- Confetti library -->
+  <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.9.2/dist/confetti.browser.min.js"></script>
+  <script>
+    let countdown;
+    const START_TIME = 10; // fixed time in seconds
+
+    function startTimer() {
+      let timeLeft = START_TIME;
+      document.getElementById("timer").textContent = timeLeft;
+
+      clearInterval(countdown); // reset if already running
+      countdown = setInterval(() => {
+        timeLeft--;
+        document.getElementById("timer").textContent = timeLeft;
+
+        if (timeLeft <= 0) {
+          clearInterval(countdown);
+          document.getElementById("timer").textContent = "🎉 Time's up!";
+          launchConfetti();
+        }
+      }, 1000);
+    }
+
+    function launchConfetti() {
+      // Two-sided poof
+      confetti({
+        particleCount: 80,
+        angle: 60,
+        spread: 55,
+        origin: { x: 0 }
+      });
+      confetti({
+        particleCount: 80,
+        angle: 120,
+        spread: 55,
+        origin: { x: 1 }
+      });
+    }
+
+    // Start timer automatically when the page loads
+    window.onload = startTimer;
+  </script>
+</body>
+</html>
