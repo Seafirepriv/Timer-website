@@ -26,46 +26,52 @@
   <div id="timer">0</div>
 
   <!-- Confetti library -->
-  <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.9.2/dist/confetti.browser.min.js"></script>
-  <script>
-    let countdown;
-    const START_TIME = 10; // fixed time in seconds
+<script>
+  // Countdown target: Sep 4, 2025 10:00 AM ET.
+  // September is Daylight Saving Time in ET, so offset is -04:00.
+  const TARGET = new Date('2025-09-04T10:00:00-04:00');
 
-    function startTimer() {
-      let timeLeft = START_TIME;
-      document.getElementById("timer").textContent = timeLeft;
+  let ticking = null;
+  let confettiFired = false;
 
-      clearInterval(countdown); // reset if already running
-      countdown = setInterval(() => {
-        timeLeft--;
-        document.getElementById("timer").textContent = timeLeft;
+  function pad(n) { return n.toString().padStart(2, '0'); }
 
-        if (timeLeft <= 0) {
-          clearInterval(countdown);
-          document.getElementById("timer").textContent = "🎉 Time's up!";
-          launchConfetti();
-        }
-      }, 1000);
+  function fmt(ms) {
+    const totalSeconds = Math.max(0, Math.floor(ms / 1000));
+    const days = Math.floor(totalSeconds / 86400);
+    const hours = Math.floor((totalSeconds % 86400) / 3600);
+    const minutes = Math.floor((totalSeconds % 3600) / 60);
+    const seconds = totalSeconds % 60;
+    return days > 0
+      ? `${days}d ${pad(hours)}:${pad(minutes)}:${pad(seconds)}`
+      : `${pad(hours)}:${pad(minutes)}:${pad(seconds)}`;
+  }
+
+  function update() {
+    const now = new Date();
+    const remaining = TARGET - now;
+    const el = document.getElementById('timer');
+
+    if (remaining <= 0) {
+      clearInterval(ticking);
+      el.textContent = "🎉 Time's up!";
+      if (!confettiFired) {
+        confettiFired = true;
+        // quick two-sided burst
+        confetti({ particleCount: 80, angle: 60,  spread: 55, origin: { x: 0 } });
+        confetti({ particleCount: 80, angle: 120, spread: 55, origin: { x: 1 } });
+      }
+      return;
     }
 
-    function launchConfetti() {
-      // Two-sided poof
-      confetti({
-        particleCount: 80,
-        angle: 60,
-        spread: 55,
-        origin: { x: 0 }
-      });
-      confetti({
-        particleCount: 80,
-        angle: 120,
-        spread: 55,
-        origin: { x: 1 }
-      });
-    }
+    el.textContent = fmt(remaining);
+  }
 
-    // Start timer automatically when the page loads
-    window.onload = startTimer;
-  </script>
-</body>
-</html>
+  window.onload = () => {
+    update();
+    clearInterval(ticking);
+    ticking = setInterval(update, 1000);
+  };
+</script>
+
+
