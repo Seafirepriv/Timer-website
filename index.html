@@ -1,77 +1,118 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
+  <meta charset="UTF-8" />
   <title>Auto Countdown Timer 🎉</title>
   <style>
+    /* ——— Layout & base ——— */
     body {
       display: flex;
       flex-direction: column;
       justify-content: center;
       align-items: center;
       height: 100vh;
-      background: #f4f4f9;
       font-family: Arial, sans-serif;
+      transition: background 0.3s, color 0.3s;
     }
+    h1 { margin: 0 0 12px; }
     #timer {
       font-size: 3rem;
       font-weight: bold;
-      color: #333;
       margin: 20px 0;
     }
+    /* Optional: tiny button polish (kept minimal) */
+    #themeToggle {
+      padding: 6px 10px;
+      border: 1px solid currentColor;
+      background: transparent;
+      border-radius: 6px;
+      cursor: pointer;
+    }
+
+    /* ——— Themes ——— */
+    body.light { background: #ffffff; color: #000000; }
+    body.dark  { background: #121212; color: #f4f4f9; }
+
+    /* Ensure timer text flips with theme */
+    body.light #timer { color: #000000; }
+    body.dark  #timer { color: #f4f4f9; }
   </style>
 </head>
 <body>
   <h1>⏳ Countdown Timer</h1>
+  <button id="themeToggle" aria-label="Toggle Light/Dark">Toggle Light/Dark</button>
   <div id="timer">0</div>
 
   <!-- Confetti library -->
-<script>
-  // Countdown target: Sep 4, 2025 10:00 AM ET.
-  // September is Daylight Saving Time in ET, so offset is -04:00.
-  const TARGET = new Date('2025-09-04T10:00:00-04:00');
+  <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.9.2/dist/confetti.browser.min.js"></script>
 
-  let ticking = null;
-  let confettiFired = false;
-
-  function pad(n) { return n.toString().padStart(2, '0'); }
-
-  function fmt(ms) {
-    const totalSeconds = Math.max(0, Math.floor(ms / 1000));
-    const days = Math.floor(totalSeconds / 86400);
-    const hours = Math.floor((totalSeconds % 86400) / 3600);
-    const minutes = Math.floor((totalSeconds % 3600) / 60);
-    const seconds = totalSeconds % 60;
-    return days > 0
-      ? `${days}d ${pad(hours)}:${pad(minutes)}:${pad(seconds)}`
-      : `${pad(hours)}:${pad(minutes)}:${pad(seconds)}`;
-  }
-
-  function update() {
-    const now = new Date();
-    const remaining = TARGET - now;
-    const el = document.getElementById('timer');
-
-    if (remaining <= 0) {
-      clearInterval(ticking);
-      el.textContent = "🎉 Time's up!";
-      if (!confettiFired) {
-        confettiFired = true;
-        // quick two-sided burst
-        confetti({ particleCount: 80, angle: 60,  spread: 55, origin: { x: 0 } });
-        confetti({ particleCount: 80, angle: 120, spread: 55, origin: { x: 1 } });
+  <script>
+    // ===================== THEME HELPERS =====================
+    function applyTheme(theme) {
+      document.body.classList.remove('light', 'dark');
+      document.body.classList.add(theme);
+    }
+    function initTheme() {
+      const saved = localStorage.getItem('theme');
+      applyTheme(saved === 'dark' ? 'dark' : 'light'); // default: light
+      const btn = document.getElementById('themeToggle');
+      if (btn && !btn.dataset.bound) {
+        btn.addEventListener('click', () => {
+          const current = document.body.classList.contains('dark') ? 'dark' : 'light';
+          const next = current === 'dark' ? 'light' : 'dark';
+          applyTheme(next);
+          localStorage.setItem('theme', next);
+        });
+        btn.dataset.bound = '1';
       }
-      return;
+    }
+    // =========================================================
+
+    // ====== Countdown target: Sep 4, 2025 10:00 AM ET (-04:00) ======
+    const TARGET = new Date('2025-09-04T10:00:00-04:00');
+
+    let ticking = null;
+    let confettiFired = false;
+
+    function pad(n) { return n.toString().padStart(2, '0'); }
+
+    function fmt(ms) {
+      const totalSeconds = Math.max(0, Math.floor(ms / 1000));
+      const days = Math.floor(totalSeconds / 86400);
+      const hours = Math.floor((totalSeconds % 86400) / 3600);
+      const minutes = Math.floor((totalSeconds % 3600) / 60);
+      const seconds = totalSeconds % 60;
+      return days > 0
+        ? `${days}d ${pad(hours)}:${pad(minutes)}:${pad(seconds)}`
+        : `${pad(hours)}:${pad(minutes)}:${pad(seconds)}`;
     }
 
-    el.textContent = fmt(remaining);
-  }
+    function update() {
+      const now = new Date();
+      const remaining = TARGET - now;
+      const el = document.getElementById('timer');
 
-  window.onload = () => {
-    update();
-    clearInterval(ticking);
-    ticking = setInterval(update, 1000);
-  };
-</script>
+      if (remaining <= 0) {
+        clearInterval(ticking);
+        el.textContent = "🎉 Time's up!";
+        if (!confettiFired) {
+          confettiFired = true;
+          // quick two-sided burst
+          confetti({ particleCount: 80, angle: 60,  spread: 55, origin: { x: 0 } });
+          confetti({ particleCount: 80, angle: 120, spread: 55, origin: { x: 1 } });
+        }
+        return;
+      }
+      el.textContent = fmt(remaining);
+    }
 
-
+    // ——— Init on load ———
+    window.onload = () => {
+      initTheme();
+      update();
+      clearInterval(ticking);
+      ticking = setInterval(update, 1000);
+    };
+  </script>
+</body>
+</html>
