@@ -20,14 +20,25 @@
       font-weight: bold;
       margin: 20px 0;
     }
-    /* Optional: tiny button polish (kept minimal) */
-    #themeToggle {
+
+    /* ——— Controls (bottom-left) ——— */
+    #controls {
+      position: fixed;
+      left: 14px;
+      bottom: 14px;
+      display: flex;
+      gap: 8px;
+    }
+    .btn {
+      font: inherit;               /* match other text */
+      color: inherit;              /* match current theme color */
       padding: 6px 10px;
       border: 1px solid currentColor;
       background: transparent;
       border-radius: 6px;
       cursor: pointer;
     }
+    .btn:active { transform: translateY(1px); }
 
     /* ——— Themes ——— */
     body.light { background: #ffffff; color: #000000; }
@@ -40,8 +51,13 @@
 </head>
 <body>
   <h1>⏳ Countdown Timer</h1>
-  <button id="themeToggle" aria-label="Toggle Light/Dark">Toggle Light/Dark</button>
   <div id="timer">0</div>
+
+  <!-- Controls anchored bottom-left -->
+  <div id="controls" aria-label="Page controls">
+    <button id="themeToggle" class="btn">Toggle Light/Dark</button>
+    <button id="confettiTest" class="btn">Test Confetti</button>
+  </div>
 
   <!-- Confetti library -->
   <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.9.2/dist/confetti.browser.min.js"></script>
@@ -87,6 +103,21 @@
         : `${pad(hours)}:${pad(minutes)}:${pad(seconds)}`;
     }
 
+    // Shared confetti burst
+    function launchConfetti() {
+      confetti({ particleCount: 80, angle: 60,  spread: 55, origin: { x: 0 } });
+      confetti({ particleCount: 80, angle: 120, spread: 55, origin: { x: 1 } });
+    }
+
+    // Bind test button without touching the countdown
+    function initConfettiTest() {
+      const testBtn = document.getElementById('confettiTest');
+      if (testBtn && !testBtn.dataset.bound) {
+        testBtn.addEventListener('click', launchConfetti);
+        testBtn.dataset.bound = '1';
+      }
+    }
+
     function update() {
       const now = new Date();
       const remaining = TARGET - now;
@@ -97,9 +128,7 @@
         el.textContent = "🎉 Time's up!";
         if (!confettiFired) {
           confettiFired = true;
-          // quick two-sided burst
-          confetti({ particleCount: 80, angle: 60,  spread: 55, origin: { x: 0 } });
-          confetti({ particleCount: 80, angle: 120, spread: 55, origin: { x: 1 } });
+          launchConfetti();
         }
         return;
       }
@@ -109,6 +138,7 @@
     // ——— Init on load ———
     window.onload = () => {
       initTheme();
+      initConfettiTest();
       update();
       clearInterval(ticking);
       ticking = setInterval(update, 1000);
